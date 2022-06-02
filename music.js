@@ -1,57 +1,57 @@
 //const synth = new Tone.Synth().toMaster()
 //synth.triggerAttackRelease('C4', '8n')
 
+var power = new Nexus.Add.Toggle("#instrument");
 
-var dial = Nexus.Add.Dial('#instrument',{
-	'size': [100,100]
+
+var harmDial = Nexus.Add.Dial('#instrument',{
+  'size': [75,75],
+  'value': 1.0,
+  'min': 0,
+  'max': 2,
 });
 
-var slider = Nexus.Add.Slider('#instrument',{
-	'size': [25,100]
-});
+var sliderAttack = Nexus.Add.Slider('#instrument',{'size': [25,100]});
+var sliderRelease = Nexus.Add.Slider('#instrument',{'size': [25,100]});
 
-//attach a click listener to a play button
+
 document.getElementById('button')?.addEventListener('click', async () => {
-	await Tone.start();
-	console.log('audio is ready')
-	startSynth();
+  await Tone.start();
+  console.log('audio is ready')
+  setup();
 })
 
-
-
-function startSynth() {
-    // create two monophonic synths
-    const synthA = new Tone.FMSynth().toDestination();
-    const synthB = new Tone.AMSynth().toDestination();
-    //play a note every quarter-note
-    const loopA = new Tone.Loop(time => {
-        	synthA.triggerAttackRelease("C2", "8n", time);
-    }, "4n").start(0);
-    //play another note every off quarter-note, by starting it "8n"
-    const loopB = new Tone.Loop(time => {
-	     synthB.triggerAttackRelease("C4", "8n", time);
-    }, "4n").start("8n");
-    // all loops start until the Transport is started
-}
-
-
-document.getElementById("play-button").addEventListener("click", function() {
-  if (Tone.Transport.state !== 'started') {
-    Tone.Transport.start();
-  } else {
-    Tone.Transport.stop();
-  }
-});
-
 function setup() {
-	const synth = new Tone.MonoSynth({
-		oscillator: {
-			type: "square"
-		},
-		envelope: {
-			attack: 0.1
-		}
-	}).toDestination();
-	synth.triggerAttackRelease("C4", "8n");
+  
+  const synth = new Tone.DuoSynth({
+    oscillator: {
+      type: "triangle"
+    },
+    envelope: {
+      attack: 0.1
+    }
+  }).toDestination();
+  
+  const loop = new Tone.Loop(time => {
+    synth.triggerAttackRelease("C4", "16n", time);
+  }, "8n").start(0);
+  
+  power.on('change',function(v) {
+    v ? Tone.Transport.start() : Tone.Transport.stop();
+  });
+  
+  harmDial.on('change',function(v) {
+    synth.harmonicity.rampTo(v,.1)
+  }) 
 
+  sliderAttack.on('change',function(v) {
+    synth.envelope.attack = v;
+  }) 
+
+  sliderRelease.on('change',function(v) {
+    synth.envelope.release = v;
+  })
 }
+
+
+
